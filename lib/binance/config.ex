@@ -23,17 +23,18 @@ defmodule Binance.Config do
   end
 
   @doc """
-  Get dynamic API configs via ENVs
+  Get static API configs passed in directly
 
   ## Examples
-      iex> Binance.Config.get(%{access_keys: ["B1_API_KEY", "B1_API_SECRET"]})
+      iex> Binance.Config.get(%{api_key: "abcdef", secret_key: "123456"})
   """
   def get(%{
-        access_keys: [api_key_access, api_secret_access]
+        api_key: api_key,
+        secret_key: secret_key
       }) do
     %__MODULE__{
-      api_key: System.get_env(api_key_access),
-      api_secret: System.get_env(api_secret_access)
+      api_key: api_key,
+      api_secret: secret_key
     }
   end
 
