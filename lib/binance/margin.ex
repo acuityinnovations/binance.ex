@@ -251,4 +251,64 @@ defmodule Binance.Margin do
 
     HTTPClient.post_binance("/sapi/v1/margin/loan", arguments, config)
   end
+
+  def get_trades(
+        %{symbol: symbol} = params,
+        config \\ nil
+      ) do
+    arguments = %{
+      symbol: symbol,
+      timestamp: params[:timestamp] || :os.system_time(:millisecond)
+    }
+
+    arguments =
+      arguments
+      |> Map.merge(
+        unless(
+          is_nil(params[:start_time]),
+          do: %{startTime: params[:start_time]},
+          else: %{}
+        )
+      )
+      |> Map.merge(
+        unless(
+          is_nil(params[:end_time]),
+          do: %{endTime: params[:end_time]},
+          else: %{}
+        )
+      )
+      |> Map.merge(
+        unless(
+          is_nil(params[:from_id]),
+          do: %{fromId: params[:from_id]},
+          else: %{}
+        )
+      )
+      |> Map.merge(
+        unless(
+          is_nil(params[:order_id]),
+          do: %{orderId: params[:order_id]},
+          else: %{}
+        )
+      )
+      |> Map.merge(
+        unless(
+          is_nil(params[:is_isolated]),
+          do: %{isIsolated: params[:is_isolated]},
+          else: %{}
+        )
+      )
+      |> Map.merge(
+        unless(
+          is_nil(params[:limit]),
+          do: %{limit: params[:limit]},
+          else: %{}
+        )
+      )
+      |> Map.merge(
+        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
+      )
+
+    HTTPClient.get_binance("/sapi/v1/margin/myTrades", arguments, config)
+  end
 end
