@@ -5,7 +5,8 @@ defmodule Binance.Util do
   Sign a given string using given key
   """
   def sign_content(key, content) do
-    :crypto.hmac(
+    :crypto.mac(
+      :hmac,
       :sha256,
       key,
       content
