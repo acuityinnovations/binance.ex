@@ -23,13 +23,13 @@ defmodule Binance.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:httpoison, "~> 1.7"},
-      {:poison, "~> 3.1"},
+      {:httpoison, "~> 2.0"},
+      {:poison, "~> 5.0"},
       {:exconstructor, "~> 1.1.0"},
       {:websockex, "~> 0.4.2"},
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:mix_test_watch, "~> 0.5", only: :dev, runtime: false},
-      {:exvcr, "~> 0.10.1", only: :test},
+      {:exvcr, "~> 0.11", only: :test},
       {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
       {:ex_crypto, "~> 0.10.0"}
     ]
