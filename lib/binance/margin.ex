@@ -137,8 +137,10 @@ defmodule Binance.Margin do
       timestamp: params[:timestamp] || :os.system_time(:millisecond)
     }
 
+    # we should not do mapping key here, params will be injected directly from spread
     arguments =
       arguments
+      |> Map.merge(params)
       |> Map.merge(
         unless(
           is_nil(params[:new_client_order_id]),
@@ -153,6 +155,12 @@ defmodule Binance.Margin do
         unless(
           is_nil(params[:time_in_force]),
           do: %{timeInForce: params[:time_in_force]},
+          else: %{}
+        )
+      )
+      |> Map.merge(
+        unless(is_nil(params[:new_order_resp_type]),
+          do: %{newOrderRespType: params[:new_order_resp_type]},
           else: %{}
         )
       )

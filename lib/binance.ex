@@ -204,6 +204,7 @@ defmodule Binance do
 
     arguments =
       arguments
+      |> Map.merge(params)
       |> Map.merge(
         unless(
           is_nil(params[:new_client_order_id]),
@@ -258,6 +259,7 @@ defmodule Binance do
 
     arguments =
       arguments
+      |> Map.merge(params)
       |> Map.merge(
         unless(
           is_nil(params[:cancel_orig_client_order_id]),
