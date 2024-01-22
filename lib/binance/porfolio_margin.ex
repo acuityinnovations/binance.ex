@@ -57,6 +57,7 @@ defmodule Binance.PortfolioMargin do
 
     arguments =
       arguments
+      |> Map.merge(params)
       |> Map.merge(
         unless(
           is_nil(params[:new_client_order_id]),

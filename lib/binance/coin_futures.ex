@@ -216,6 +216,7 @@ defmodule Binance.CoinFutures do
 
     arguments =
       arguments
+      |> Map.merge(params)
       |> Map.merge(
         unless(
           is_nil(params[:new_client_order_id]),
@@ -262,6 +263,7 @@ defmodule Binance.CoinFutures do
 
     arguments =
       arguments
+      |> Map.merge(params)
       |> Map.merge(
         unless(
           is_nil(params[:orig_client_order_id]),
@@ -291,59 +293,6 @@ defmodule Binance.CoinFutures do
       error ->
         error
     end
-  end
-
-  def prepare_create_order(
-        %{symbol: symbol, side: side, type: type, quantity: quantity} = params,
-        config \\ nil
-      ) do
-    arguments = %{
-      symbol: symbol,
-      side: side,
-      type: type,
-      quantity: quantity,
-      timestamp: params[:timestamp] || :os.system_time(:millisecond)
-    }
-
-    arguments =
-      arguments
-      |> Map.merge(
-        unless(
-          is_nil(params[:new_client_order_id]),
-          do: %{newClientOrderId: params[:new_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:stop_price]), do: %{stopPrice: params[:stop_price]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:time_in_force]),
-          do: %{timeInForce: params[:time_in_force]},
-          else: %{}
-        )
-      )
-      |> Map.merge(unless(is_nil(params[:price]), do: %{price: params[:price]}, else: %{}))
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
-
-    {:ok, url, headers, argument_string} =
-      HTTPClient.prepare_request(
-        :post,
-        "#{@endpoint}/dapi/v1/order",
-        arguments,
-        config,
-        true
-      )
-
-    %{
-      method: "POST",
-      url: url,
-      headers: headers,
-      body: argument_string
-    }
   end
 
   @doc """
