@@ -41,68 +41,13 @@ defmodule Binance.PortfolioMargin do
     end
   end
 
-  def create_order(
-        order_type,
-        %{symbol: symbol, side: side, type: type, quantity: quantity} = params,
-        config \\ nil,
-        options \\ []
-      ) do
-    arguments = %{
-      symbol: symbol,
-      side: side,
-      type: type,
-      quantity: quantity,
-      timestamp: params[:timestamp] || :os.system_time(:millisecond)
-    }
-
+  def create_order(order_type, params,config \\ nil, options \\ []) do
     arguments =
-      arguments
-      |> Map.merge(params)
-      |> Map.merge(
-        unless(
-          is_nil(params[:new_client_order_id]),
-          do: %{newClientOrderId: params[:new_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:reduce_only]), do: %{reduceOnly: params[:reduce_only]}, else: %{})
-      )
-      |> Map.merge(
-        unless(is_nil(params[:stop_price]), do: %{stopPrice: params[:stop_price]}, else: %{})
-      )
-      |> Map.merge(
-        unless(is_nil(params[:quote_order_qty]),
-          do: %{quoteOrderQty: params[:quote_order_qty]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:iceberg_qty]), do: %{icebergQty: params[:iceberg_qty]}, else: %{})
-      )
-      |> Map.merge(
-        unless(is_nil(params[:side_effect_type]),
-          do: %{sideEffectType: params[:side_effect_type]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:new_order_resp_type]),
-          do: %{newOrderRespType: params[:new_order_resp_type]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:time_in_force]),
-          do: %{timeInForce: params[:time_in_force]},
-          else: %{}
-        )
-      )
-      |> Map.merge(unless(is_nil(params[:price]), do: %{price: params[:price]}, else: %{}))
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.post_binance(
            "#{@endpoint}/papi/v1/#{order_type}/order",
@@ -133,45 +78,14 @@ defmodule Binance.PortfolioMargin do
   end
 
   def get_order(order_type, params, config \\ nil) do
-    arguments =
-      %{
-        symbol: params[:symbol],
-        timestamp: params[:timestamp] || :os.system_time(:millisecond)
-      }
-      |> Map.merge(
-        unless(is_nil(params[:order_id]), do: %{orderId: params[:order_id]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-
-    case HTTPClient.get_binance("#{@endpoint}/papi/v1/#{order_type}/order", arguments, config) do
+    case HTTPClient.get_binance("#{@endpoint}/papi/v1/#{order_type}/order", params, config) do
       {:ok, _data, _headers} = res -> res
       err -> err
     end
   end
 
   def cancel_order(order_type, params, config \\ nil) do
-    arguments =
-      %{
-        symbol: params[:symbol]
-      }
-      |> Map.merge(
-        unless(is_nil(params[:order_id]), do: %{orderId: params[:order_id]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-
-    case HTTPClient.delete_binance("#{@endpoint}/papi/v1/#{order_type}/order", arguments, config) do
+    case HTTPClient.delete_binance("#{@endpoint}/papi/v1/#{order_type}/order", params, config) do
       {:ok, %{"rejectReason" => _} = err, headers} ->
         {:error, err, headers}
 

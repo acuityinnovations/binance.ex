@@ -189,50 +189,13 @@ defmodule Binance do
   Please read https://www.binance.com/restapipub.html#user-content-account-endpoints to understand all the parameters
   """
   @spec create_order(map(), map() | nil) :: {:ok, map(), any()} | {:error, error()}
-  def create_order(
-        %{symbol: symbol, side: side, type: type, quantity: quantity} = params,
-        config \\ nil,
-        options \\ []
-      ) do
-    arguments = %{
-      symbol: symbol,
-      side: side,
-      type: type,
-      quantity: quantity,
-      timestamp: params[:timestamp] || :os.system_time(:millisecond)
-    }
-
+  def create_order(params, config \\ nil, options \\ []) do
     arguments =
-      arguments
-      |> Map.merge(params)
-      |> Map.merge(
-        unless(
-          is_nil(params[:new_client_order_id]),
-          do: %{newClientOrderId: params[:new_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:stop_price]), do: %{stopPrice: params[:stop_price]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:iceberg_quantity]),
-          do: %{icebergQty: params[:iceberg_quantity]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:time_in_force]),
-          do: %{timeInForce: params[:time_in_force]},
-          else: %{}
-        )
-      )
-      |> Map.merge(unless(is_nil(params[:price]), do: %{price: params[:price]}, else: %{}))
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.post_binance("#{@endpoint}/api/v3/order", arguments, config, true, options) do
       {:ok, data, headers} ->
@@ -243,58 +206,13 @@ defmodule Binance do
     end
   end
 
-  def update_order(
-        %{symbol: symbol, side: side, type: type, quantity: quantity} = params,
-        config \\ nil,
-        options \\ []
-      ) do
-    arguments = %{
-      symbol: symbol,
-      side: side,
-      type: type,
-      quantity: quantity,
-      cancelReplaceMode: "STOP_ON_FAILURE",
-      timestamp: params[:timestamp] || :os.system_time(:millisecond)
-    }
-
+  def update_order(params, config \\ nil, options \\ []) do
     arguments =
-      arguments
-      |> Map.merge(params)
-      |> Map.merge(
-        unless(
-          is_nil(params[:cancel_orig_client_order_id]),
-          do: %{cancelOrigClientOrderId: params[:cancel_orig_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:new_client_order_id]),
-          do: %{newClientOrderId: params[:new_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:stop_price]), do: %{stopPrice: params[:stop_price]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:iceberg_quantity]),
-          do: %{icebergQty: params[:iceberg_quantity]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:time_in_force]),
-          do: %{timeInForce: params[:time_in_force]},
-          else: %{}
-        )
-      )
-      |> Map.merge(unless(is_nil(params[:price]), do: %{price: params[:price]}, else: %{}))
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.post_binance(
            "#{@endpoint}/api/v3/order/cancelReplace",
@@ -357,23 +275,11 @@ defmodule Binance do
   @spec get_order(map(), map() | nil) :: {:ok, list(%Binance.Order{})} | {:error, error()}
   def get_order(params, config \\ nil) do
     arguments =
-      %{
-        symbol: params[:symbol],
-        timestamp: params[:timestamp] || :os.system_time(:millisecond)
-      }
-      |> Map.merge(
-        unless(is_nil(params[:order_id]), do: %{orderId: params[:order_id]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.get_binance("#{@endpoint}/api/v3/order", arguments, config) do
       {:ok, data, headers} -> {:ok, Binance.Order.new(data), headers}
@@ -393,34 +299,11 @@ defmodule Binance do
   @spec cancel_order(map(), map() | nil) :: {:ok, %Binance.Order{}} | {:error, error()}
   def cancel_order(params, config \\ nil) do
     arguments =
-      %{
-        symbol: params[:symbol],
-        timestamp: params[:timestamp] || :os.system_time(:millisecond)
-      }
-      |> Map.merge(
-        unless(is_nil(params[:order_id]), do: %{orderId: params[:order_id]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:new_client_order_id]),
-          do: %{newClientOrderId: params[:new_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:recv_window]),
-          do: %{recvWindow: params[:recv_window]},
-          else: %{}
-        )
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.delete_binance("#{@endpoint}/api/v3/order", arguments, config) do
       {:ok, data, headers} -> {:ok, Binance.Order.new(data), headers}
