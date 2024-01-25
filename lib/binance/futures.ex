@@ -84,15 +84,11 @@ defmodule Binance.Futures do
   @spec create_listen_key(map()) :: {:ok, map(), any()} | {:error, error()}
   def create_listen_key(params, config \\ nil) do
     arguments =
-      %{
-        timestamp: :os.system_time(:millisecond)
-      }
-      |> Map.merge(
-        unless(is_nil(params[:timestamp]), do: %{timestamp: params[:timestamp]}, else: %{})
-      )
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.post_binance("#{@endpoint}/fapi/v1/listenKey", arguments, config) do
       {:ok, %{"code" => code, "msg" => msg}, headers} ->
@@ -107,15 +103,11 @@ defmodule Binance.Futures do
           {:ok, %{}, any()} | {:error, error()}
   def keep_alive_listen_key(params, config \\ nil) do
     arguments =
-      %{
-        timestamp: :os.system_time(:millisecond)
-      }
-      |> Map.merge(
-        unless(is_nil(params[:timestamp]), do: %{timestamp: params[:timestamp]}, else: %{})
-      )
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.put_binance("#{@endpoint}/fapi/v1/listenKey", arguments, config) do
       {:ok, %{"code" => code, "msg" => msg}, headers} ->
@@ -202,43 +194,13 @@ defmodule Binance.Futures do
   Please read https://binanceapitest.github.io/Binance-Futures-API-doc/trade_and_account/#new-order-trade
   """
   @spec create_order(map(), map() | nil) :: {:ok, map(), any()} | {:error, error()}
-  def create_order(
-        %{symbol: symbol, side: side, type: type, quantity: quantity} = params,
-        config \\ nil,
-        options \\ []
-      ) do
-    arguments = %{
-      symbol: symbol,
-      side: side,
-      type: type,
-      quantity: quantity,
-      timestamp: params[:timestamp] || :os.system_time(:millisecond)
-    }
-
+  def create_order(params, config \\ nil, options \\ []) do
     arguments =
-      arguments
-      |> Map.merge(params)
-      |> Map.merge(
-        unless(
-          is_nil(params[:new_client_order_id]),
-          do: %{newClientOrderId: params[:new_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:stop_price]), do: %{stopPrice: params[:stop_price]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:time_in_force]),
-          do: %{timeInForce: params[:time_in_force]},
-          else: %{}
-        )
-      )
-      |> Map.merge(unless(is_nil(params[:price]), do: %{price: params[:price]}, else: %{}))
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.post_binance("#{@endpoint}/fapi/v1/order", arguments, config, true, options) do
       {:ok, data, headers} ->
@@ -249,43 +211,13 @@ defmodule Binance.Futures do
     end
   end
 
-  def update_order(
-        %{symbol: symbol, side: side, type: type, quantity: quantity} = params,
-        config \\ nil,
-        options \\ []
-      ) do
-    arguments = %{
-      symbol: symbol,
-      side: side,
-      type: type,
-      quantity: quantity,
-      timestamp: params[:timestamp] || :os.system_time(:millisecond)
-    }
-
+  def update_order(params, config \\ nil, options \\ []) do
     arguments =
-      arguments
-      |> Map.merge(params)
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:stop_price]), do: %{stopPrice: params[:stop_price]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:time_in_force]),
-          do: %{timeInForce: params[:time_in_force]},
-          else: %{}
-        )
-      )
-      |> Map.merge(unless(is_nil(params[:price]), do: %{price: params[:price]}, else: %{}))
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.put_binance("#{@endpoint}/fapi/v1/order", arguments, config, true) do
       {:ok, data, headers} ->
@@ -339,22 +271,7 @@ defmodule Binance.Futures do
   @spec get_order(map(), map() | nil) ::
           {:ok, list(%Binance.Futures.Order{}), any()} | {:error, error()}
   def get_order(params, config \\ nil) do
-    arguments =
-      %{
-        symbol: params[:symbol]
-      }
-      |> Map.merge(
-        unless(is_nil(params[:order_id]), do: %{orderId: params[:order_id]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-
-    case HTTPClient.get_binance("#{@endpoint}/fapi/v1/order", arguments, config) do
+    case HTTPClient.get_binance("#{@endpoint}/fapi/v1/order", params, config) do
       {:ok, data, headers} -> {:ok, Binance.Futures.Order.new(data), headers}
       err -> err
     end
@@ -374,78 +291,16 @@ defmodule Binance.Futures do
   @spec cancel_order(map(), map() | nil) ::
           {:ok, %Binance.Futures.Order{}, any()} | {:error, error()}
   def cancel_order(params, config \\ nil) do
-    arguments =
-      %{
-        symbol: params[:symbol]
-      }
-      |> Map.merge(
-        unless(is_nil(params[:order_id]), do: %{orderId: params[:order_id]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-
-    case HTTPClient.delete_binance("#{@endpoint}/fapi/v1/order", arguments, config) do
+    case HTTPClient.delete_binance("#{@endpoint}/fapi/v1/order", params, config) do
       {:ok, %{"rejectReason" => _} = err, headers} -> {:error, err, headers}
       {:ok, data, headers} -> {:ok, Binance.Futures.Order.new(data), headers}
       err -> err
     end
   end
 
-  def prepare_cancel_order(params, config \\ nil) do
-    arguments =
-      %{
-        symbol: params[:symbol]
-      }
-      |> Map.merge(
-        unless(is_nil(params[:order_id]), do: %{orderId: params[:order_id]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-
-    {:ok, url, headers} =
-      HTTPClient.prepare_request(
-        :delete,
-        "#{@endpoint}/fapi/v1/order",
-        arguments,
-        config,
-        true
-      )
-
-    %{
-      method: "DELETE",
-      url: url,
-      headers: headers
-    }
-  end
-
   @spec cancel_batch_order(map(), map() | nil) :: {:ok, list, any()} | {:error, error()}
   def cancel_batch_order(params, config \\ nil) do
-    arguments =
-      %{
-        symbol: params[:symbol]
-      }
-      |> Map.merge(
-        if(!!params[:order_id_list], do: %{orderIdList: params[:order_id_list]}, else: %{})
-      )
-      |> Map.merge(
-        if(
-          !!params[:orig_client_order_id_list],
-          do: %{origClientOrderIdList: params[:orig_client_order_id_list]},
-          else: %{}
-        )
-      )
-
-    case HTTPClient.delete_binance("#{@endpoint}/fapi/v1/batchOrders", arguments, config) do
+    case HTTPClient.delete_binance("#{@endpoint}/fapi/v1/batchOrders", params, config) do
       {:ok, %{"rejectReason" => _} = err, headers} -> {:error, err, headers}
       {:ok, data, headers} -> {:ok, data, headers}
       err -> err

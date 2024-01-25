@@ -124,60 +124,13 @@ defmodule Binance.Margin do
     end
   end
 
-  def create_order(
-        %{symbol: symbol, side: side, type: type, quantity: quantity} = params,
-        config \\ nil,
-        options \\ []
-      ) do
-    arguments = %{
-      symbol: symbol,
-      side: side,
-      type: type,
-      quantity: quantity,
-      timestamp: params[:timestamp] || :os.system_time(:millisecond)
-    }
-
-    # we should not do mapping key here, params will be injected directly from spread
+  def create_order(params, config \\ nil, options \\ []) do
     arguments =
-      arguments
-      |> Map.merge(params)
-      |> Map.merge(
-        unless(
-          is_nil(params[:new_client_order_id]),
-          do: %{newClientOrderId: params[:new_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:stop_price]), do: %{stopPrice: params[:stop_price]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:time_in_force]),
-          do: %{timeInForce: params[:time_in_force]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:new_order_resp_type]),
-          do: %{newOrderRespType: params[:new_order_resp_type]},
-          else: %{}
-        )
-      )
-      |> Map.merge(unless(is_nil(params[:price]), do: %{price: params[:price]}, else: %{}))
-      |> Map.merge(
-        unless(
-          is_nil(params[:side_effect_type]),
-          do: %{sideEffectType: params[:side_effect_type]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
-      |> Map.merge(
-        unless(is_nil(params[:is_isolated]), do: %{isIsolated: params[:is_isolated]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.post_binance(
            "#{@endpoint}/sapi/v1/margin/order",
@@ -204,29 +157,7 @@ defmodule Binance.Margin do
   end
 
   def cancel_order(params, config \\ nil) do
-    arguments =
-      %{
-        symbol: params[:symbol]
-      }
-      |> Map.merge(
-        unless(is_nil(params[:order_id]), do: %{orderId: params[:order_id]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:is_isolated]),
-          do: %{isIsolated: params[:is_isolated]},
-          else: %{}
-        )
-      )
-
-    case HTTPClient.delete_binance("#{@endpoint}/sapi/v1/margin/order", arguments, config) do
+    case HTTPClient.delete_binance("#{@endpoint}/sapi/v1/margin/order", params, config) do
       {:ok, %{"rejectReason" => _} = err, headers} -> {:error, err, headers}
       {:ok, data, headers} -> {:ok, Binance.Margin.Order.new(data), headers}
       err -> err
@@ -234,45 +165,13 @@ defmodule Binance.Margin do
   end
 
   def get_order(params, config \\ nil) do
-    arguments =
-      %{
-        symbol: params[:symbol]
-      }
-      |> Map.merge(
-        unless(is_nil(params[:order_id]), do: %{orderId: params[:order_id]}, else: %{})
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:orig_client_order_id]),
-          do: %{origClientOrderId: params[:orig_client_order_id]},
-          else: %{}
-        )
-      )
-      |> Map.merge(
-        unless(
-          is_nil(params[:is_isolated]),
-          do: %{isIsolated: params[:is_isolated]},
-          else: %{}
-        )
-      )
-
-    case HTTPClient.get_binance("#{@endpoint}/sapi/v1/margin/order", arguments, config) do
+    case HTTPClient.get_binance("#{@endpoint}/sapi/v1/margin/order", params, config) do
       {:ok, data, headers} -> {:ok, Binance.Margin.Order.new(data), headers}
       err -> err
     end
   end
 
   def cancel_all_orders(params, config \\ nil) do
-    params =
-      params
-      |> Map.merge(
-        unless(
-          is_nil(params[:is_isolated]),
-          do: %{isIsolated: params[:is_isolated]},
-          else: %{}
-        )
-      )
-
     case HTTPClient.delete_binance("#{@endpoint}/sapi/v1/margin/openOrders", params, config) do
       {:ok, %{"rejectReason" => _} = err, headers} -> {:error, err, headers}
       {:ok, data, headers} -> {:ok, data, headers}
@@ -291,18 +190,11 @@ defmodule Binance.Margin do
   """
   def borrow(params, config \\ nil) do
     arguments =
-      %{
-        asset: params[:asset],
-        amount: params[:amount],
-        timestamp: params[:timestamp] || :os.system_time(:millisecond)
-      }
-      |> Map.merge(
-        unless(is_nil(params[:is_isolated]), do: %{isIsolated: params[:is_isolated]}, else: %{})
-      )
-      |> Map.merge(unless(is_nil(params[:symbol]), do: %{symbol: params[:symbol]}, else: %{}))
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     HTTPClient.post_binance("#{@endpoint}/sapi/v1/margin/loan", arguments, config)
   end
