@@ -22,15 +22,11 @@ defmodule Binance.PortfolioMargin do
 
   def create_listen_key(params, config \\ nil) do
     arguments =
-      %{
-        timestamp: :os.system_time(:millisecond)
-      }
-      |> Map.merge(
-        unless(is_nil(params[:timestamp]), do: %{timestamp: params[:timestamp]}, else: %{})
-      )
-      |> Map.merge(
-        unless(is_nil(params[:recv_window]), do: %{recvWindow: params[:recv_window]}, else: %{})
-      )
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
 
     case HTTPClient.post_binance("#{@endpoint}/papi/v1/listenKey", arguments, config) do
       {:ok, %{"code" => code, "msg" => msg}, headers} ->
@@ -41,7 +37,7 @@ defmodule Binance.PortfolioMargin do
     end
   end
 
-  def create_order(order_type, params,config \\ nil, options \\ []) do
+  def create_order(order_type, params, config \\ nil, options \\ []) do
     arguments =
       if params[:timestamp] do
         params
