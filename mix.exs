@@ -24,7 +24,7 @@ defmodule Binance.MixProject do
   defp deps do
     [
       {:httpoison, "~> 2.0"},
-      {:poison, "~> 3.1"},
+      {:poison, "~> 5.0"},
       {:exconstructor, "~> 1.1.0"},
       {:websockex, "~> 0.4.2"},
       {:ex_doc, ">= 0.0.0", only: :dev},
