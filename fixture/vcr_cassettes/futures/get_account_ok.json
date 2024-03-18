@@ -8,7 +8,7 @@
       "method": "get",
       "options": [],
       "request_body": "",
-      "url": "https://fapi.binance.com/fapi/v1/account?recvWindow=5000&timestamp=1568882788189&signature=***"
+      "url": "https://fapi.binance.com/fapi/v2/account?recvWindow=5000&timestamp=1568882788189&signature=***"
     },
     "response": {
       "binary": false,
