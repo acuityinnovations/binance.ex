@@ -147,6 +147,10 @@ defmodule Binance.Rest.HTTPClient do
       {:ok, %{"code" => code, "msg" => msg}} ->
         {:error, {:binance_error, %{code: code, msg: msg}}, response.headers}
 
+      # for PM return
+      {:ok, %{"msg" => msg}} ->
+        {:error, {:binance_error, %{code: status_code, msg: msg}}, response.headers}
+
       {:error, error} ->
         if System.get_env("DEBUG_LOG") === "true" do
           Logger.error("poison_decode_error: #{inspect(response.body)}")
