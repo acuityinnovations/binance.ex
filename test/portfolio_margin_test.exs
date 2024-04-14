@@ -121,6 +121,27 @@ defmodule PortfolioMarginTest do
                   }}
       end
     end
+
+    test "returns error message and http status code" do
+      use_cassette "portfolio_margin/create_order_failed_503" do
+        assert {:error, reason, _rate_limit} =
+                 Binance.PortfolioMargin.create_order("um", %{
+                   symbol: "BTCUSDT",
+                   side: "SELL",
+                   type: "LIMIT",
+                   quantity: 0.05,
+                   price: 11000,
+                   time_in_force: "GTC"
+                 })
+
+        assert reason ==
+                 {:binance_error,
+                  %{
+                    code: 503,
+                    msg: "Unknown error, please check your request or try again later."
+                  }}
+      end
+    end
   end
 
   describe ".get_open_orders" do
