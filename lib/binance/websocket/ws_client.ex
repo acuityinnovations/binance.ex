@@ -33,7 +33,7 @@ defmodule Binance.WebSocket.WSClient do
   A.start_link(%{name: :"user-data-stream", require_auth: true, config: config})
   """
 
-  import Logger, only: [info: 1, warn: 1]
+  import Logger, only: [info: 1]
   import Process, only: [send_after: 3]
 
   # Client API
