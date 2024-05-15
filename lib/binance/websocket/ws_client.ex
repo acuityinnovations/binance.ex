@@ -118,7 +118,7 @@ defmodule Binance.WebSocket.WSClient do
       end
 
       def handle_frame({:text, json_data}, state) do
-        response = json_data |> Poison.decode!()
+        response = json_data |> Jason.decode!()
         handle_response(response, state)
       end
 
