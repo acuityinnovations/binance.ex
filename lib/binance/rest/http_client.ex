@@ -142,7 +142,7 @@ defmodule Binance.Rest.HTTPClient do
   defp parse_response({:ok, %{status_code: status_code} = response})
        when status_code not in 200..299 do
     response.body
-    |> Poison.decode()
+    |> Jason.decode()
     |> case do
       {:ok, %{"code" => code, "msg" => msg}} ->
         {:error, {:binance_error, %{code: code, msg: msg}}, response.headers}
@@ -162,7 +162,7 @@ defmodule Binance.Rest.HTTPClient do
 
   defp parse_response({:ok, response}) do
     response.body
-    |> Poison.decode()
+    |> Jason.decode()
     |> case do
       {:ok, data} ->
         {:ok, data, response.headers}
