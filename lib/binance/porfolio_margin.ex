@@ -66,6 +66,31 @@ defmodule Binance.PortfolioMargin do
     end
   end
 
+  def update_order(order_type, params, config \\ nil) do
+    arguments =
+      if params[:timestamp] do
+        params
+      else
+        Map.put(params, :timestamp, :os.system_time(:millisecond))
+      end
+
+    case HTTPClient.put_binance(
+           "#{@endpoint}/papi/v1/#{order_type}/order",
+           arguments,
+           config,
+           true
+         ) do
+      {:ok, data, headers} when order_type == "um" ->
+        {:ok, Binance.PortfolioMargin.UMOrder.new(data), headers}
+
+      {:ok, data, headers} when order_type == "cm" ->
+        {:ok, Binance.PortfolioMargin.CMOrder.new(data), headers}
+
+      error ->
+        error
+    end
+  end
+
   def get_open_orders(order_type, params \\ %{}, config \\ nil) do
     case HTTPClient.get_binance("#{@endpoint}/papi/v1/#{order_type}/openOrders", params, config) do
       {:ok, _data, _headers} = res -> res
