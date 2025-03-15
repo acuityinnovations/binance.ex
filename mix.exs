@@ -25,7 +25,7 @@ defmodule Binance.MixProject do
     [
       {:httpoison, "~> 2.0"},
       {:jason, "~> 1.4.0"},
-      {:exconstructor, "~> 1.1.0"},
+      {:exconstructor, "~> 1.2"},
       {:websockex, "~> 0.4.2"},
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:mix_test_watch, "~> 0.5", only: :dev, runtime: false},
